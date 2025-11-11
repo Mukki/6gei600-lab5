@@ -7,7 +7,7 @@ void timer_init(void);
 void interrupts_init(void);
 
 int main(void) {
-    uart_init();  // Initialize UART first for debug output
+    uart_init();
     gpio_init();
     interrupts_init();
     timer_init();

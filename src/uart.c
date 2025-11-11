@@ -2,11 +2,9 @@
 #include <stdbool.h>
 #include "uart.h"
 
-// UART0 base address for Raspberry Pi 3
 #define PERIPH_BASE     0x3F000000UL
 #define UART0_BASE      (PERIPH_BASE + 0x201000)
 
-// UART0 registers
 #define UART0_DR        (*(volatile uint32_t*)(UART0_BASE + 0x00))
 #define UART0_FR        (*(volatile uint32_t*)(UART0_BASE + 0x18))
 #define UART0_IBRD      (*(volatile uint32_t*)(UART0_BASE + 0x24))
@@ -15,17 +13,14 @@
 #define UART0_CR        (*(volatile uint32_t*)(UART0_BASE + 0x30))
 #define UART0_ICR       (*(volatile uint32_t*)(UART0_BASE + 0x44))
 
-// GPIO registers for UART pin configuration
 #define GPIO_BASE       (PERIPH_BASE + 0x200000)
 #define GPFSEL1         (*(volatile uint32_t*)(GPIO_BASE + 0x04))
 #define GPPUD           (*(volatile uint32_t*)(GPIO_BASE + 0x94))
 #define GPPUDCLK0       (*(volatile uint32_t*)(GPIO_BASE + 0x98))
 
-// UART0 flag register bits
-#define UART0_FR_TXFF   (1 << 5)  // Transmit FIFO full
-#define UART0_FR_RXFE   (1 << 4)  // Receive FIFO empty
+#define UART0_FR_TXFF   (1 << 5)
+#define UART0_FR_RXFE   (1 << 4)
 
-// Simple delay function
 static void delay(int32_t count) {
     while (count-- > 0) {
         __asm__ volatile("nop");
@@ -33,42 +28,31 @@ static void delay(int32_t count) {
 }
 
 void uart_init(void) {
-    // Disable UART0
     UART0_CR = 0;
 
-    // Setup GPIO pins 14 and 15 for UART (ALT0 function)
     uint32_t ra = GPFSEL1;
-    ra &= ~((7 << 12) | (7 << 15));  // Clear GPIO 14 and 15
-    ra |= (4 << 12) | (4 << 15);     // Set ALT0 function
+    ra &= ~((7 << 12) | (7 << 15));
+    ra |= (4 << 12) | (4 << 15);
     GPFSEL1 = ra;
 
-    // Disable pull up/down for pins 14 and 15
     GPPUD = 0;
     delay(150);
     GPPUDCLK0 = (1 << 14) | (1 << 15);
     delay(150);
     GPPUDCLK0 = 0;
 
-    // Clear pending interrupts
     UART0_ICR = 0x7FF;
 
-    // Set baud rate to 115200
-    // Integer part: 26 (for 3MHz UART clock)
-    // Fractional part: 3
     UART0_IBRD = 26;
     UART0_FBRD = 3;
 
-    // Enable FIFO & 8-bit data transmission (1 stop bit, no parity)
     UART0_LCRH = (1 << 4) | (1 << 5) | (1 << 6);
 
-    // Enable UART0, receive & transfer part of UART
     UART0_CR = (1 << 0) | (1 << 8) | (1 << 9);
 }
 
 void uart_putc(char c) {
-    // Wait until transmit FIFO has space
     while (UART0_FR & UART0_FR_TXFF) {
-        // Busy wait
     }
     UART0_DR = c;
 }
@@ -76,7 +60,7 @@ void uart_putc(char c) {
 void uart_puts(const char* str) {
     while (*str) {
         if (*str == '\n') {
-            uart_putc('\r');  // Add carriage return for proper line ending
+            uart_putc('\r');
         }
         uart_putc(*str++);
     }
@@ -93,7 +77,7 @@ void uart_put_number(int num) {
         return;
     }
 
-    char buffer[12];  // Enough for 32-bit int
+    char buffer[12];
     int i = 0;
 
     while (num > 0) {
@@ -101,7 +85,6 @@ void uart_put_number(int num) {
         num /= 10;
     }
 
-    // Print in reverse order
     while (i > 0) {
         uart_putc(buffer[--i]);
     }
@@ -122,7 +105,6 @@ void uart_put_hex(uint32_t num) {
     }
 }
 
-// GPIO debugging functions
 void uart_debug_gpio_init(uint32_t pin) {
     uart_puts("[GPIO] Initializing pin ");
     uart_put_number(pin);

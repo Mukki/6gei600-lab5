@@ -33,12 +33,25 @@ A quick map from files to responsibilities, with the most important registers an
 - Configures GPIO function select registers to set pins as outputs
 - `gpio_set_red(bool on)` turns the red LED on/off
 - Constants assume Raspberry Pi 3 peripheral base `0x3F000000`
+- Includes UART debug calls to report GPIO state changes to the serial console
+
+## `src/uart.c`
+- Implements UART0 serial communication for debugging
+- Initializes UART0 at 115200 baud using GPIO pins 14 (TX) and 15 (RX)
+- Provides debug output functions:
+  - `uart_putc(char)`: Output a single character
+  - `uart_puts(str)`: Output a string
+  - `uart_put_number(int)`: Output decimal numbers
+  - `uart_put_hex(uint32_t)`: Output hexadecimal values
+  - `uart_debug_gpio_*()`: GPIO-specific debug helpers
+- **Why UART?** Since QEMU's raspi3b emulation has limited GPIO peripheral support, you cannot visually see GPIO pin state changes. UART provides a way to print debug messages to the serial console, making it possible to verify GPIO operations and track program behavior during development.
 
 ## `include/*.h`
 - Public interfaces:
   - `gpio.h`: `gpio_init`, `gpio_set_red`
   - `timer.h`: `timer_init`, `timer_schedule_next`
   - `interrupts.h`: `interrupts_init`, `irq_handler`
+  - `uart.h`: `uart_init`, `uart_puts`, `uart_put_number`, `uart_put_hex`, GPIO debug helpers
 
 ## `linker.ld`
 - Places code at load address `0x80000`

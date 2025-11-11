@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include "gpio.h"
+#include "uart.h"
 
 #define PERIPH_BASE      0x3F000000UL
 #define GPIO_BASE       (PERIPH_BASE + 0x200000)
@@ -23,14 +24,19 @@ static inline void gpio_set_output(uint32_t pin) {
     val &= ~(0x7u << shift);
     val |=  (0x1u << shift);
     *gpfsel = val;
+
+    uart_debug_gpio_set_output(pin);
 }
 
 static inline void gpio_write(uint32_t pin, bool on) {
     if (on) GPSET0 = (1u << pin);
     else    GPCLR0 = (1u << pin);
+
+    uart_debug_gpio_write(pin, on);
 }
 
 void gpio_init(void) {
+    uart_debug_gpio_init(PIN_RED);
     gpio_set_output(PIN_RED);
     gpio_write(PIN_RED, false);
 }

@@ -36,34 +36,59 @@ This command:
 
 The `kernel8.img` file will be created in your current directory and will be accessible outside the container.
 
-### Interactive container session
+### Clean build artifacts
 
-To open an interactive bash session in the container:
+To remove all compiled files and start fresh:
 
 ```bash
-docker run -it --rm -v "$(pwd):/workspace" -w /workspace lab5-baremetal
+docker run --rm -v "$(pwd):/workspace" -w /workspace lab5-baremetal make clean
 ```
 
-Then you can run `make CROSS=aarch64-linux-gnu-` manually inside the container.
-
-## Build
-Prereq: aarch64-elf-gcc toolchain in PATH.
-
-```
-make
-```
-Produces `kernel8.img`.
+This removes all `.o` object files, `.elf` and `.img` files.
 
 ## Run
-- On SD card boot partition:
-  - Add to `config.txt`:
-    ```
-    arm_64bit=1
-    kernel=kernel8.img
-    ```
-  - Copy `kernel8.img` to the boot partition alongside the Raspberry Pi firmware files.
+
+### Testing in QEMU (with UART Debug Output)
+
+Run the kernel in QEMU to see GPIO state changes via UART serial console:
+
+```bash
+docker run --rm -it -v "$(pwd)/kernel8.img:/kernel8.img:ro" lab5-baremetal qemu-system-aarch64 -M raspi3b -m 1024 -kernel /kernel8.img -serial stdio -monitor none -nographic -append "console=serial0,115200"
+```
+
+This command:
+- `-M raspi3b`: Emulates Raspberry Pi 3B
+- `-serial stdio`: Connects UART0 output to your terminal
+- `-nographic`: Disables graphical window, shows only serial console
+- `-append "console=serial0,115200"`: Configures console parameters
+
+**Expected output:**
+```
+[GPIO] Initializing pin 17
+[GPIO] Set pin 17 as OUTPUT
+[GPIO] Pin 17 -> LOW
+[GPIO] Pin 17 -> HIGH
+[GPIO] Pin 17 -> LOW
+...
+```
+
+Each GPIO state change will be printed to the console. Since QEMU doesn't fully emulate GPIO hardware, UART provides the only way to observe program behavior.
+
+Press `Ctrl+A` then `X` to exit QEMU, or `Ctrl+C` to stop the container.
+
+### On Real Hardware
+
+On SD card boot partition:
+- Add to `config.txt`:
+  ```
+  arm_64bit=1
+  kernel=kernel8.img
+  ```
+- Copy `kernel8.img` to the boot partition alongside the Raspberry Pi firmware files.
 - Boot the Pi.
+
+On real hardware, you'll see both the physical LED toggling and UART debug output (if connected to serial console).
 
 ## Notes
 - SoC base addresses assume Raspberry Pi 3B: peripheral base 0x3F000000.
-
+- UART debugging is integrated for development in QEMU. See `docs/uart_debugging.md` for details.

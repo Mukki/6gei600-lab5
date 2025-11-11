@@ -4,13 +4,40 @@
 .extern irq_handler
 vectors:
     b .
+    .align 7
     b .
+    .align 7
     b .
+    .align 7
     b .
+    .align 7
+
     b .
+    .align 7
     b irq_el1h
+    .align 7
     b .
+    .align 7
     b .
+    .align 7
+
+    b .
+    .align 7
+    b .
+    .align 7
+    b .
+    .align 7
+    b .
+    .align 7
+
+    b .
+    .align 7
+    b .
+    .align 7
+    b .
+    .align 7
+    b .
+    .align 7
 
 irq_el1h:
     sub sp, sp, #32

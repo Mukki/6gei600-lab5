@@ -12,20 +12,22 @@ Welcome! This guide explains how this Raspberry Pi 3B bare‑metal project boots
 - How the image is linked and loaded (`linker.ld`)
 
 ## Recommended reading order
-1. Boot and interrupt flow
-2. Modules overview
-3. Build and run
-4. Memory layout
-5. Troubleshooting
+1. Build and run (get it working first!)
+2. Debugging guide (how to find and fix problems)
+3. Boot and interrupt flow
+4. Modules overview
+5. Memory layout
+6. Troubleshooting
 
 ## Docs index
+- **Debugging guide**: `docs/debugging_guide.md` ⭐ **Start here if things don't work!**
+- Build and run: `docs/build_and_run.md`
 - Boot and interrupt flow: `docs/boot_interrupt_flow.md`
 - Modules overview: `docs/modules.md`
 - UART debugging: `docs/uart_debugging.md`
-- Build and run: `docs/build_and_run.md`
 - Memory layout: `docs/memory_layout.md`
 - Troubleshooting: `docs/troubleshooting.md`
 
-If you get stuck, skim the troubleshooting page first.
+If you get stuck, read the debugging guide and troubleshooting page first.
 
 

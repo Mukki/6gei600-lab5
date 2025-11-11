@@ -14,6 +14,29 @@ _start:
     b 1b
 2:
 
+    mrs x0, CurrentEL
+    and x0, x0, #0xC
+    lsr x0, x0, #2
+
+    cmp x0, #2
+    b.ne skip_el2_setup
+
+    ldr x0, =_stack_top
+    msr SP_EL1, x0
+
+    mov x0, #(1 << 31)
+    msr HCR_EL2, x0
+
+    mov x0, #0x5
+    msr SPSR_EL2, x0
+
+    adr x0, el1_entry
+    msr ELR_EL2, x0
+
+    eret
+
+skip_el2_setup:
+el1_entry:
     ldr x0, =vectors
     msr VBAR_EL1, x0
     isb
